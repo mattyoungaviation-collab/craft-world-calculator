@@ -599,6 +599,7 @@ export const App: React.FC = () => {
       setRefreshToken(rToken);
       setWalletAddress(address);
 
+      localStorage.setItem('cw_token', token);
       localStorage.setItem('cw-auth-token', token);
       localStorage.setItem('cw-auth-address', address);
       localStorage.setItem('cw-wallet-address', address);
@@ -700,6 +701,7 @@ export const App: React.FC = () => {
     setBalances(null);
     setLastAutoRefresh(0);
     clearAuth();
+    localStorage.removeItem('cw_token');
     localStorage.removeItem('cw-wallet-address');
     localStorage.removeItem('cw-user-id');
     localStorage.removeItem('cw-account-info');
