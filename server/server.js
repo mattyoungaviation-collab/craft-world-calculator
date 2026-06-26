@@ -4,6 +4,7 @@ import { Buffer } from 'node:buffer';
 const PORT = Number(process.env.PORT || 3001);
 const CRAFTWORLD_GRAPHQL_URL = process.env.CRAFTWORLD_GRAPHQL_URL || 'https://craft-world.gg/graphql';
 const CW_APP_VERSION = process.env.CW_APP_VERSION || '1.11.0';
+const RONIN_RPC_URL = process.env.RONIN_RPC_URL || 'https://api.roninchain.com/rpc';
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
 function getAllowedOrigins() {
@@ -39,22 +40,27 @@ function decodeJwtPayload(token) {
   }
 }
 
-export async function callCraftWorldGraphQL(query, variables = {}, bearerToken) {
+export async function callCraftWorldGraphQL(query, variables = {}, bearerToken, options = {}) {
   const fallback = process.env.CRAFTWORLD_JWT;
-  const normalizedToken = normalizeCraftWorldToken(bearerToken || fallback);
-  if (!normalizedToken) {
+  const requireAuth = options.requireAuth !== false;
+  const normalizedToken = normalizeCraftWorldToken(bearerToken || (requireAuth ? fallback : null));
+  if (requireAuth && !normalizedToken) {
     const err = new Error('Missing CraftWorld bearer token');
     err.statusCode = 401;
     throw err;
   }
 
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-app-version': CW_APP_VERSION,
+  };
+  if (normalizedToken) {
+    headers.Authorization = `Bearer ${normalizedToken}`;
+  }
+
   const res = await fetch(CRAFTWORLD_GRAPHQL_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-app-version': CW_APP_VERSION,
-      'Authorization': `Bearer ${normalizedToken}`,
-    },
+    headers,
     body: JSON.stringify({ query, variables }),
   });
 
@@ -124,12 +130,24 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return res.writeHead(204).end();
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
+    if (url.pathname === '/' || url.pathname === '') return send(res, 200, { ok: true, service: 'craft-world-calculator-api', health: '/health' });
     if (url.pathname === '/health') return send(res, 200, { ok: true });
     const token = extractBearerToken(req.headers.authorization);
     if (req.method === 'POST' && url.pathname === '/api/game') {
       const body = await readJson(req);
-      const data = await callCraftWorldGraphQL(body.query, body.variables || {}, token);
+      const data = await callCraftWorldGraphQL(body.query, body.variables || {}, token, { requireAuth: false });
       return send(res, 200, { data });
+    }
+    if (req.method === 'POST' && url.pathname === '/api/ronin-rpc') {
+      const body = await readJson(req);
+      const rpcRes = await fetch(RONIN_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const rpcText = await rpcRes.text();
+      res.writeHead(rpcRes.status, { 'Content-Type': rpcRes.headers.get('content-type') || 'application/json' });
+      return res.end(rpcText);
     }
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' });
     const payload = await handleApi(url.pathname, token);

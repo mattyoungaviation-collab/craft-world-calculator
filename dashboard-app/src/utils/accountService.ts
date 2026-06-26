@@ -1,3 +1,4 @@
+import { apiUrl } from './api';
 /**
  * accountService.ts — Queries Craft World GraphQL API
  *
@@ -158,7 +159,7 @@ async function tryQuery(
   jwtToken?: string,
 ): Promise<QueryAttempt> {
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: createHeaders(jwtToken),
       body: JSON.stringify({ query, variables: variables || null }),

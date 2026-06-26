@@ -12,7 +12,7 @@
  */
 
 import { fetchPlayerAccountWithJWT, type PlayerAccountInfo } from './accountService';
-import { getCwToken } from './api';
+import { apiUrl, getCwToken } from './api';
 
 const GAME_API_URL = '/api/game';
 
@@ -101,7 +101,7 @@ async function fetchChallenge(address: string): Promise<string> {
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ async function exchangeSignature(address: string, signature: string): Promise<Fi
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -336,7 +336,7 @@ export async function validateJWT(jwtToken: string): Promise<boolean> {
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
