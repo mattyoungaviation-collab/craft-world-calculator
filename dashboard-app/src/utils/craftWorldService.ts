@@ -10,6 +10,7 @@
  * Reference: procesodeobtcwt.txt and datagame.txt
  */
 
+import { authFetch } from './api';
 import type {
   PlayerAccountInfo,
   PlayerMine,
@@ -23,8 +24,7 @@ import type {
 
 // ─── Constants ───
 
-const CW_GRAPHQL_URL = '/api/game'; // Proxied by Vite to https://craft-world.gg/graphql
-const CW_APP_VERSION = '1.15.1';
+const CW_CONFIG_URL = '/api/craftworld_config';
 
 // ─── Token Normalization ───
 
@@ -63,263 +63,44 @@ export function decodeJWTPayload(token: string): Record<string, any> {
   }
 }
 
-// ─── The Complete AggregatedCraftWorldDataQuery ───
-
-const AGGREGATED_QUERY = `
-query AggregatedCraftWorldDataQuery {
-  features {
-    name
-    active
-  }
-
-  dynoProductionCycle {
-    startedAt
-    millisecondsPerCompletion
-  }
-
-  events {
-    id name code startTime endTime minLevelIndex skinName detailsText infoText
-  }
-
-  resources {
-    symbol
-    rank
-    chainId
-    features
-    conversions {
-      symbol
-      factor
-    }
-    isFixed
-    sector
-    contractAddress
-  }
-
-  account {
-    id
-    experiencePoints
-    power
-    powerLastRefill
-    skillPoints
-    leagueId
-    updatedAt
-    walletAddress
-    claimedMasterpieceIds
-    resources { symbol amount }
-    lastUserActionAt
-    deletedAt
-    isNoAdsActive
-    globalCoordinate { x y }
-    adWatchCounts { adPlacement count resetsAt }
-    activeMasterpieceBattlePasses
-    seasonPasses
-    isTransferActive
-    blockedWithdraw
-    shopItemPurchases { shopItemId purchasedAt }
-    crystalPass {
-      claimableCrystals
-      claimableDays
-      remainingDays
-      maxDays
-      hasActivePass
-      isClaimable
-    }
-    claimedDiscordJoinReward
-    tradeAccount {
-      tradeCount
-      dailyRefillAmount
-      totalTradeAmount
-      capacity
-    }
-    currencyBalances { type amount }
-
-    availableAvatars { avatarUrl isEns }
-
-    workers {
-      id
-      name
-      skin
-      areaBoostValue
-      areaUuid
-      isAreaLead
-      traits
-      training {
-        id
-        workerSlotIndex
-        universitySlotIndex
-        universityBuildingId
-        startedAt
-        readyAt
-      }
-      abilityId
-      abilityActivation {
-        effect
-        activatedAt
-        expiresAt
-      }
-      cooldownEndsAt
-    }
-
-    eggs { definitionId amount }
-    eggGuaranteeProgress { eggDefinitionId hatchesSinceGuarantee hatchesUntilGuaranteed }
-    chests { definitionId count }
-    blueprintInventory { definitionId amount starLevel landPlotUuids }
-    factoryInventory { id definitionId level }
-
-    wallets { address type provider providerId primary }
-
-    mines {
-      id
-      definition { id }
-      startedAt
-      claimedAt
-      level
-      currentRunLevel
-      unclaimedUnitsBeforeCurrentRun
-      boostValue
-      boostedNextRun
-      consumableBoosters {
-        id startTime endTime boostValue
-      }
-    }
-
-    researches {
-      symbol
-      remainingInMilliseconds
-      claimed
-    }
-
-    dynos {
-      production { symbol amount }
-      claimableResources { symbol amount }
-      meta {
-        displayName
-        imageUrl
-        rarity
-        isOneOfOne
-      }
-    }
-
-    landPlots {
-      id
-      name
-      isLocked
-      appliedBlueprint { definitionId starLevel landPlotUuids }
-      areas {
-        id
-        symbol
-        landPlotId
-        landPlotPosition
-        factories {
-          factory {
-            id
-            level
-            definition { id }
-          }
-          crafting {
-            currentRunLevel
-            startedAt
-            claimedAt
-            unclaimedUnitsBeforeCurrentRun
-          }
-          boosters { startTime endTime boostValue }
-          consumableBoosters { id startTime endTime boostValue }
-          workerBoostIntervals { startTime endTime boostValue }
-        }
-      }
-      booster { startTime endTime boostValue }
-    }
-
-    fullPlayerBase {
-      ownedSpaceIds
-      buildings {
-        id type level subType
-        pos { x y }
-        upgradedAt readyAt
-      }
-      powerPlants {
-        buildingId
-        lastClaimedAt
-        storedPower
-        inputAmount
-        runningLevel
-        activeBoosters { boosterId expiresAt }
-      }
-      hatchStates {
-        hatcheryId eggDefinitionId slotId
-        hatchStartTime hatchEndTime
-        rolledSkin rolledBoostValue rolledName rolledAt
-      }
-      occupiedBuildingCapacity
-      totalBuildingCapacity
-    }
-
-    vaults {
-      symbol amount capacity isUnlocked buildingUnlockLevel
-    }
-
-    workshop { symbol level }
-
-    proficiencies { symbol collectedAmount claimedLevel }
-
-    profile { uid walletAddress avatarUrl displayName }
-
-    announcements { id title body goToEvent minLevel createdAt }
-
-    availablePowerPacks { id amount }
-    availableBoosters { id amount }
-
-    resourcesOnChain { symbol amount }
-  }
-}
-`;
+// CraftWorld GraphQL query details live on the backend.
 
 // ─── API Call ───
 
-export async function fetchAggregatedCraftWorldData(idToken: string): Promise<{
+export async function fetchAggregatedCraftWorldData(_idToken?: string): Promise<{
   account: any;
   features: any[];
   dynoProductionCycle: any;
   events: any[];
   resources: any[];
 }> {
-  const normalizedToken = normalizeCraftWorldToken(idToken);
+  console.log('🌐 Calling backend CraftWorld config route...');
 
-  console.log('🌐 Calling CraftWorld AggregatedCraftWorldDataQuery...');
-
-  const res = await fetch(CW_GRAPHQL_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-app-version': CW_APP_VERSION,
-      'Authorization': `Bearer ${normalizedToken}`,
-    },
-    body: JSON.stringify({
-      query: AGGREGATED_QUERY,
-      variables: null,
-    }),
-  });
+  const res = await authFetch(CW_CONFIG_URL);
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(`CraftWorld API error: HTTP ${res.status} — ${errorText.slice(0, 200)}`);
+    throw new Error(`CraftWorld backend error: HTTP ${res.status} — ${errorText.slice(0, 200)}`);
   }
 
   const json = await res.json();
+  const account = {
+    ...(json.account || {}),
+    ...(json.fetchCraftWorld || {}),
+    profile: {
+      ...(json.account?.profile || {}),
+      uid: json.uid || json.account?.profile?.uid || json.account?.id,
+    },
+  };
 
-  if (json.errors) {
-    console.error('❌ CraftWorld GraphQL errors:', json.errors);
-    throw new Error(`CraftWorld GraphQL error: ${json.errors[0]?.message || 'Unknown error'}`);
-  }
-
-  console.log('✅ AggregatedCraftWorldDataQuery succeeded');
+  console.log('✅ Backend CraftWorld config route succeeded');
 
   return {
-    account: json.data?.account || null,
-    features: json.data?.features || [],
-    dynoProductionCycle: json.data?.dynoProductionCycle || null,
-    events: json.data?.events || [],
-    resources: json.data?.resources || [],
+    account,
+    features: [],
+    dynoProductionCycle: null,
+    events: [],
+    resources: account.resources || [],
   };
 }
 

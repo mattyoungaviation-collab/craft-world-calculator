@@ -1,21 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+const backendTarget = process.env.VITE_API_URL || 'http://localhost:3001'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Proxy official Craft World GraphQL API to bypass CORS
-      '/api/game': {
-        target: 'https://craft-world.gg',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/game/, '/graphql'),
-        secure: false,
-      },
-      // Proxy official Craft World authentication endpoints
-      '/api/auth': {
-        target: 'https://craft-world.gg',
+      // Local dev only: frontend calls backend API routes; backend calls CraftWorld.
+      '/api': {
+        target: backendTarget,
         changeOrigin: true,
         secure: false,
       },
@@ -26,17 +21,6 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/ronin-rpc/, '/rpc'),
         secure: false,
       },
-      // Proxy Thirdweb Embedded Wallet to spoof Origin/Referer headers
-      '/api/thirdweb': {
-        target: 'https://embedded-wallet.thirdweb.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/thirdweb/, ''),
-        secure: false,
-        headers: {
-          'Origin': 'https://craft-world.gg',
-          'Referer': 'https://craft-world.gg/'
-        }
-      }
     }
   }
 })

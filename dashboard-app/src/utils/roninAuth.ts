@@ -12,6 +12,7 @@
  */
 
 import { fetchPlayerAccountWithJWT, type PlayerAccountInfo } from './accountService';
+import { apiUrl, getCwToken } from './api';
 
 const GAME_API_URL = '/api/game';
 
@@ -100,7 +101,7 @@ async function fetchChallenge(address: string): Promise<string> {
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ async function exchangeSignature(address: string, signature: string): Promise<Fi
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -232,6 +233,7 @@ export async function authenticateWithRonin(): Promise<{ address: string; jwtTok
   console.groupEnd();
 
   // Store all tokens
+  localStorage.setItem('cw_token', jwtToken);
   localStorage.setItem(AUTH_STORAGE_KEY, jwtToken);
   localStorage.setItem(ADDRESS_STORAGE_KEY, address);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -242,7 +244,7 @@ export async function authenticateWithRonin(): Promise<{ address: string; jwtTok
 
 // ─── Load saved auth ───
 export function loadSavedAuth(): AuthState {
-  const jwtToken = localStorage.getItem(AUTH_STORAGE_KEY);
+  const jwtToken = getCwToken() || null;
   const address = localStorage.getItem(ADDRESS_STORAGE_KEY);
   return {
     address,
@@ -254,6 +256,7 @@ export function loadSavedAuth(): AuthState {
 
 // ─── Clear auth ───
 export function clearAuth(): void {
+  localStorage.removeItem('cw_token');
   localStorage.removeItem(AUTH_STORAGE_KEY);
   localStorage.removeItem(ADDRESS_STORAGE_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -284,6 +287,7 @@ export async function refreshFirebaseToken(refreshToken: string): Promise<{ idTo
   }
 
   // Update stored tokens
+  localStorage.setItem('cw_token', newIdToken);
   localStorage.setItem(AUTH_STORAGE_KEY, newIdToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
   localStorage.setItem(TOKEN_EXPIRES_AT_KEY, String(Date.now() + expiresIn * 1000));
@@ -294,7 +298,7 @@ export async function refreshFirebaseToken(refreshToken: string): Promise<{ idTo
 
 // ─── Get valid token, refreshing if needed ───
 export async function getValidToken(): Promise<string | null> {
-  const token = localStorage.getItem(AUTH_STORAGE_KEY);
+  const token = getCwToken();
   if (!token) return null;
 
   const expiresAt = parseInt(localStorage.getItem(TOKEN_EXPIRES_AT_KEY) || '0');
@@ -332,7 +336,7 @@ export async function validateJWT(jwtToken: string): Promise<boolean> {
     }
   `;
   try {
-    const res = await fetch(GAME_API_URL, {
+    const res = await fetch(apiUrl(GAME_API_URL), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

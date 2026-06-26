@@ -18,6 +18,7 @@
 
 import { FACTORIES_DATA } from '../assets/data/factories';
 import { fetchBalancesFromOnChain } from './roninWeb3Service';
+import { apiUrl } from './api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -139,7 +140,7 @@ interface GameApiResponse {
 }
 
 async function fetchFromGameApi(): Promise<{ prices: TokenPrices; source: 'game-api' }> {
-  const res = await fetch(GAME_API_URL, {
+  const res = await fetch(apiUrl(GAME_API_URL), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -231,7 +232,7 @@ async function fetchCoinUsdFromChain(): Promise<number> {
         id: 1,
       };
 
-      const res = await fetch(RONIN_RPC_URL, {
+      const res = await fetch(apiUrl(RONIN_RPC_URL), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -374,7 +375,7 @@ export async function fetchTokenBalances(walletAddress: string): Promise<Record<
 
     const fetchSingle = async (symbol: string): Promise<[string, number]> => {
       try {
-        const res = await fetch(RONIN_RPC_URL, {
+        const res = await fetch(apiUrl(RONIN_RPC_URL), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
