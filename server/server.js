@@ -125,7 +125,7 @@ const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin;
   if (origin && getAllowedOrigins().includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-app-version');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.writeHead(204).end();
   try {
