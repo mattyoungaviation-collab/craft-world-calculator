@@ -86,7 +86,7 @@ const accountStatusQuery = `query AccountStatus { account { power powerMilliseco
 const proficienciesQuery = `query AccountProficiencies { account { proficiencies { symbol collectedAmount claimedLevel } } }`;
 const workshopQuery = `query AccountWorkshop { account { workshop { symbol level } } }`;
 const uidQuery = `query AccountUid { account { id walletAddress profile { uid walletAddress avatarUrl displayName } wallets { address type provider providerId primary } tradeAccount { tradeCount dailyRefillAmount totalTradeAmount capacity } } }`;
-const configQuery = `query FetchCraftWorld($uid: ID!) { fetchCraftWorld(uid: $uid) { landPlots { areas { symbol factories { factory { level definition { id } } } mines { level definition { id } } } } dynos { meta { displayName rarity } production { amount symbol } } resources { symbol amount } } }`;
+const configQuery = `query FetchCraftWorld($uid: ID!) { fetchCraftWorld(uid: $uid) { landPlots { areas { symbol factories { factory { level definition { id } } } } } dynos { meta { displayName rarity } production { amount symbol } } resources { symbol amount } } }`;
 
 function hms(ms) {
   const seconds = Math.max(0, Math.ceil(Number(ms || 0) / 1000));
