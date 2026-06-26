@@ -1,0 +1,11 @@
+{
+  "name": "craft-world-calculator-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

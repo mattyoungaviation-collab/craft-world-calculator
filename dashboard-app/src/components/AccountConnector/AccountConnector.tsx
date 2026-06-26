@@ -79,6 +79,7 @@ export const AccountConnector: React.FC<AccountConnectorProps> = ({
     setErrorMsg('');
     setLocalSyncing(true);
     try {
+      localStorage.setItem('cw_token', inputJwt);
       localStorage.setItem('cw-auth-token', inputJwt);
       const info = await fetchAuthenticatedAccountData(inputJwt, inputUserId || undefined);
       if (info.id) {
@@ -171,7 +172,7 @@ export const AccountConnector: React.FC<AccountConnectorProps> = ({
             <span className={styles.icon}>🔗</span>
             <div>
               <h3>Conexión de Cuenta</h3>
-              <p className={styles.subtitle}>Inicia sesión con Ronin Wallet para cargar tus datos del juego</p>
+              <p className={styles.subtitle}>Usa tu token de CraftWorld/Firebase para cargar tus datos del juego</p>
             </div>
           </div>
           <span className={`${styles.statusBadge} ${styles[status]}`}>
@@ -209,7 +210,7 @@ export const AccountConnector: React.FC<AccountConnectorProps> = ({
               {activeLoginTab === 'web3' && (
                 <div className={styles.tabPanel}>
                   <p className={styles.loginDesc}>
-                    Firma un mensaje seguro con tu Ronin Wallet para sincronizar tu cuenta del juego automáticamente (Recomendado).
+                    Si ya tienes Ronin configurado, este flujo heredado puede intentar obtener un token Firebase. El flujo recomendado es usar cw_token de CraftWorld/Firebase.
                   </p>
                   <button
                     onClick={handleRoninLogin}
@@ -255,7 +256,7 @@ export const AccountConnector: React.FC<AccountConnectorProps> = ({
               {activeLoginTab === 'jwt' && (
                 <div className={styles.tabPanel}>
                   <p className={styles.loginDesc}>
-                    Pega tu token JWT activo copiado del juego. Este método es útil para desarrolladores o depuración.
+                    Pega tu cw_token de CraftWorld/Firebase. Se limpiará en el frontend y el backend lo normalizará para CraftWorld.
                   </p>
                   <form onSubmit={handleJwtSubmit} className={styles.formGroup}>
                     <div className={styles.inputWrapper}>
