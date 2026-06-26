@@ -50,6 +50,8 @@ export const BonusPanel: React.FC<BonusPanelProps> = ({
 
   // Computed effects
   const yieldBonus = +(mastery * MASTERY_YIELD_PER_LEVEL).toFixed(2);
+  const timeReduction = 0;
+  const inputReduction = 0;
 
   const handleCountChange = (value: number) => {
     setFactoryCount(Math.max(1, Math.min(100, value)));
